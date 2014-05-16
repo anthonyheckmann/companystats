@@ -1,14 +1,21 @@
 {
-  "name": "chat-example",
+  "name": "company-stats",
   "version": "0.0.0",
-  "description": "A chat example to showcase how to use `socket.io` with a static `express` server",
+  "description": "top secret",
   "main": "server.js",
-  "repository": "",
-  "author": "Mostafa Eweda <mostafa@c9.io>",
+  "repository": "noodlehead",
+  "author": "Anthony Heckmann",
   "dependencies": {
     "async": "~0.2.8",
     "express": "~3.2.4",
     "socket.io": "~0.9.14",
-    "sqlite3":"*"
+    "sqlite3":"2.2.*",
+    "url":"*",
+    "util":"*",
+    "http-agent":"0.1.*",
+    "jsdom":"*",
+    "jquery":"2.1"
   }
 }
+
+
