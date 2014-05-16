@@ -8,7 +8,7 @@ var http = require('http'),
     async = require('async'),
     socketio = require('socket.io'),
     express = require('express'),
-    sqlite = require('sqlite3'),
+   // sqlite = require('sqlite3'),
     util = require('util'),
     url = require('url'),
     httpAgent = require('http-agent'),
@@ -75,6 +75,25 @@ agent.start();
 
 
 
+// SQL connection
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database("db_test.db");
+
+db.serialize(function() {
+  db.run("CREATE TABLE lorem (info TEXT)");
+
+  var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+  for (var i = 0; i < 10; i++) {
+      stmt.run("Ipsum " + i);
+  }
+  stmt.finalize();
+
+  db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
+      console.log(row.id + ": " + row.info);
+  });
+});
+
+db.close();
 
 
 
@@ -83,8 +102,7 @@ agent.start();
 
 
 
-
-
+// ##socket.io stuff
 io.on('connection', function (socket) {
     messages.forEach(function (data) {
       socket.emit('message', data);
