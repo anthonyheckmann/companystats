@@ -8,11 +8,20 @@ var http = require('http'),
     async = require('async'),
     socketio = require('socket.io'),
     express = require('express'),
-   // sqlite = require('sqlite3'),
+    sqlite3 = require('sqlite3'),
     util = require('util'),
     url = require('url'),
     httpAgent = require('http-agent'),
-    jsdom = require('jsdom').jsdom;
+    jsdom = require('jsdom').jsdom,
+    db,
+    _ = require('underscore'),
+    zlib = require('zlib');
+
+
+
+//init things here
+doDBstuff();
+var rawDeflater=zlib.createDeflateRaw();
 
 //
 // ## SimpleServer `SimpleServer(obj)`
@@ -30,9 +39,9 @@ var sockets = [];
 
 
 // ##Scraper
-function printTop3(agent) {
+function printTop3(body) {
     jsdom.env(
-    agent.body, ["http://code.jquery.com/jquery.js"],
+    body, ["http://code.jquery.com/jquery.js"],
 
     function(errors, window) {
 
@@ -53,12 +62,38 @@ function printTop3(agent) {
     });
 }
 
-var urls = ['', 'newest'];
+var urls = ['', 'newest'],
+    nowdate=Date.now();
+//check if any urls have been cached.
+    _.each(urls,function (ploop) {
+        db.get(
+            "SELECT whenvisited, domain, url FROM webcache WHERE whenvisited > ? AND whenvisited < ?",
+            [],
+            function (err,row)
+            {
+                if (row)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+        )
+
+    });
 var agent = httpAgent.create('news.ycombinator.com', urls);
 console.log('Scraping', urls.length, 'pages from', agent.host);
 
 agent.addListener('next', function(err, agent) {
-    printTop3(agent);
+
+    zlib.deflateRaw(agent.body, function() {
+        db.run("INSERT INTO webcache VALUES(?,?,?,?)", agent.host || "", Date.now(), agent.url, this);
+        });
+
+
+    printTop3(agent.body);
     console.log();
     agent.next();
 });
@@ -76,24 +111,30 @@ agent.start();
 
 
 // SQL connection
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database("db_test.db");
 
-db.serialize(function() {
-  db.run("CREATE TABLE lorem (info TEXT)");
+function doDBstuff() {
+    db = new sqlite3.cached.Database("db_test.db");
 
-  var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-  for (var i = 0; i < 10; i++) {
-      stmt.run("Ipsum " + i);
-  }
-  stmt.finalize();
+    db.serialize(function() {
+        db.run("CREATE TABLE IF NOT EXISTS lorem (info TEXT)");
 
-  db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-      console.log(row.id + ": " + row.info);
-  });
-});
+        db.run("CREATE TABLE IF NOT EXISTS webcache (domain TEXT, whenvisited INTEGER,url TEXT,body TEXT)");
 
-db.close();
+        db.run("CREATE TABLE IF NOT EXISTS company (name TEXT)");
+
+
+        var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+        for (var i = 0; i < 10; i++) {
+            stmt.run("Ipsum " + i);
+        }
+        stmt.finalize();
+
+        db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
+            console.log(row.id + ": " + row.info);
+        });
+    });
+};
+//db.close();
 
 
 
@@ -128,6 +169,24 @@ io.on('connection', function (socket) {
         };
 
         broadcast('message', data);
+        messages.push(data);
+      });
+    });
+
+    socket.on('compmessage', function (msg) {
+      var twitter = String(msg || '');
+
+      if (!text)
+        return;
+
+      socket.get('name', function (err, name) {
+        var data = {
+          name: name,
+          twitter: twitter,
+          agent: agent,
+        };
+
+        broadcast('compmessage', data);
         messages.push(data);
       });
     });

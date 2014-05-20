@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" ng-app>
   <head>
-    <title>Chat Example</title>
+    <title>Company Stats</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
@@ -11,20 +11,31 @@
       }
     </style>
     <script>
-      function ChatController($scope) {
+      function StatsController($scope) {
         var socket = io.connect();
 
         $scope.messages = [];
         $scope.roster = [];
         $scope.name = '';
+        $scope.companyname = '';
         $scope.text = '';
+        $scope.companies = [];
+       // $scope.roster = [];
+        $scope.currentuser = '';
+        $scope.twitter = '';
 
         socket.on('connect', function () {
           $scope.setName();
+          $scope.setUser();
         });
 
         socket.on('message', function (msg) {
           $scope.messages.push(msg);
+          $scope.$apply();
+        });
+
+        socket.on('compmessage', function (comp) {
+          $scope.companies.push(comp);
           $scope.$apply();
         });
 
@@ -39,14 +50,25 @@
           $scope.text = '';
         };
 
+        $scope.sendComp = function sendComp() {
+          console.log('Sending Comp message:', $scope.twitter);
+          socket.emit('compmessage', [$scope.twitter, $scope.companyname]);
+          $scope.twitter = '';
+        };
+
         $scope.setName = function setName() {
           socket.emit('identify', $scope.name);
-        };
+        }
+        $scope.setUser = function setSetUser() {
+          socket.emit('identify', $scope.currentuser);
+        }
+
+        ;
       }
     </script>
   </head>
   <body>
-    <div class="container" ng-controller="ChatController">
+    <div class="container" ng-controller="StatsController">
       <div class="navbar navbar-fixed-top navbar-inverse">
         <div class="navbar-inner">
           <div class="pull-right">
@@ -56,17 +78,20 @@
       </div>
       <div class="page-header">
         <h1>Company Entry</h1>
+        <input type="email" class="span3" ng-model="currentuser" placeholder="yourname@example.com" ng-change="setUser()">
       </div>
       <div class="row">
-        <div class="span3">
+        <div class="span4">
           <ul class="nav nav-list well">
             <li class="nav-header">Registered Companies</li>
+            <li class="nav-header"></li>
             <li ng-repeat="user in roster" ng-bind="user">
             </li>
           </ul>
         </div>
+        </div>
         <div class="span9">
-          <table class="table table-striped table-bordered">
+         <!-- <table class="table table-striped table-bordered">
             <thead>
               <tr>
                 <th class="span2">Company Name</th>
@@ -79,13 +104,45 @@
                 <td class="span7" ng-bind="msg.text"></td>
               </tr>
             </tbody>
+
+          </table> -->
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th class="span2">Company Name</th>
+                <th class="span4">URL to report</th>
+                <th class="span1">Agent</th>
+                <th class="span1">edit/remove</th>
+
+              </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="comp in companies">
+                    <td class="span2" ng-bind="name"></td>
+                    <td class="span4" ng-bind="twitter"></td>
+                    <td class="span1" ng-bind="agent"></td>
+                    <td class="span1">#deletebutton</td>
+
+                </tr>
+            </tbody>
           </table>
           <div class="row controls">
-            <form ng-submit="send()">
+          <!--  <form ng-submit="send()">
               <div class="span2"><input type="text" class="input-block-level" ng-model="name" ng-change="setName()" placeholder="Company Name"></div>
               <div class="input-append span7">
-                <input type="text" class="span6" ng-model="text" placeholder="Enter URL">
-                <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
+                <input type="text" class="span6" ng-model="text" placeholder="Enter Twitter URL">
+
+                <input type="submit" class="span1 btn btn-primary" value="Submit" ng-disabled="!text">
+              </div> -->
+            </form>
+          </div>
+          <div class="row controls">
+            <form ng-submit="sendComp()">
+              <div class="span2"><input type="text" class="input-block-level" ng-model="companyname"  placeholder="Company Name"></div>
+              <div class="input-append span7">
+                <input type="text" class="span5" ng-model="twitter" placeholder="Enter Twitter URL">
+                <input type="text" class="span1" ng-model="currentuser" placeholder="Email" ng-change="setUser()">
+                <input type="submit" class="span1 btn btn-primary" value="Enter" ng-disabled="!text">
               </div>
             </form>
           </div>
