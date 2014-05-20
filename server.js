@@ -175,16 +175,16 @@ io.on('connection', function (socket) {
 
     socket.on('compmessage', function (msg) {
       var thismessage = String(msg || '');
-
+        console.log(thismessage);
       if (!thismessage)
         return;
 
        socket.get('name', function (err, name) {
-    //     var data = {
-    //       name: name,
-    //       twitter: twitter,
-    //       agent: agent,
-    //     };
+        var data = {
+          name: name,
+          twitter: twitter,
+          agent: agent,
+        };
 
         broadcast('compmessage', thismessage);
         messages.push(thismessage);
