@@ -52,8 +52,10 @@
 
         $scope.sendComp = function sendComp() {
           console.log('Sending Comp message:', $scope.twitter);
-          socket.emit('compmessage', [$scope.twitter, $scope.companyname]);
-          $scope.twitter = '';
+          var comp={"companyname":$scope.companyname,"twitter":$scope.twitter,"agent":$scope.currentuser};
+          $scope.companies.push(comp);
+          socket.emit('compmessage',comp);
+          //$scope.twitter = '';
         };
 
         $scope.setName = function setName() {
@@ -118,9 +120,9 @@
             </thead>
             <tbody>
                 <tr ng-repeat="comp in companies">
-                    <td class="span2" ng-bind="name"></td>
-                    <td class="span4" ng-bind="twitter"></td>
-                    <td class="span1" ng-bind="agent"></td>
+                    <td class="span2" ng-bind="comp.companyname"></td>
+                    <td class="span4" ng-bind="comp.twitter"></td>
+                    <td class="span1" ng-bind="comp.agent"></td>
                     <td class="span1">#deletebutton</td>
 
                 </tr>
@@ -142,7 +144,7 @@
               <div class="input-append span7">
                 <input type="text" class="span5" ng-model="twitter" placeholder="Enter Twitter URL">
                 <input type="text" class="span1" ng-model="currentuser" placeholder="Email" ng-change="setUser()">
-                <input type="submit" class="span1 btn btn-primary" value="Enter" ng-disabled="!text">
+                <input type="submit" class="span1 btn btn-primary" value="Enter" ng-disabled="!companyname">
               </div>
             </form>
           </div>

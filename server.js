@@ -123,15 +123,15 @@ function doDBstuff() {
         db.run("CREATE TABLE IF NOT EXISTS company (name TEXT)");
 
 
-        var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-        for (var i = 0; i < 10; i++) {
-            stmt.run("Ipsum " + i);
-        }
-        stmt.finalize();
+        // var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+        // for (var i = 0; i < 10; i++) {
+        //     stmt.run("Ipsum " + i);
+        // }
+        // stmt.finalize();
 
-        db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-            console.log(row.id + ": " + row.info);
-        });
+        // db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
+        //     console.log(row.id + ": " + row.info);
+        // });
     });
 };
 //db.close();
@@ -174,20 +174,20 @@ io.on('connection', function (socket) {
     });
 
     socket.on('compmessage', function (msg) {
-      var twitter = String(msg || '');
+      var thismessage = String(msg || '');
 
-      if (!text)
+      if (!thismessage)
         return;
 
-      socket.get('name', function (err, name) {
-        var data = {
-          name: name,
-          twitter: twitter,
-          agent: agent,
-        };
+       socket.get('name', function (err, name) {
+    //     var data = {
+    //       name: name,
+    //       twitter: twitter,
+    //       agent: agent,
+    //     };
 
-        broadcast('compmessage', data);
-        messages.push(data);
+        broadcast('compmessage', thismessage);
+        messages.push(thismessage);
       });
     });
 
